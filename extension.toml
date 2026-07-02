@@ -1,0 +1,15 @@
+id = "pioarduino"
+name = "pioarduino"
+version = "0.1.0"
+schema_version = 1
+authors = ["Christian Baars"]
+description = "PlatformIO Arduino integration for Zed"
+repository = "https://github.com/christianbaars/pio-zed"
+
+[grammars.ini]
+repository = "https://github.com/justinmk/tree-sitter-ini"
+rev = "f0285fe577ad298ad79f8633e643ad60646e3027"
+
+[language_servers.clangd]
+name = "Clangd"
+languages = ["C", "C++"]

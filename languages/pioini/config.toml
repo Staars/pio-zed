@@ -1,0 +1,5 @@
+name = "PlatformIO INI"
+grammar = "ini"
+path_suffixes = ["ini"]
+line_comments = [";", "#"]
+first_line_pattern = "^\\[.+\\]$"

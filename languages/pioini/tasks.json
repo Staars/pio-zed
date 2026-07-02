@@ -1,0 +1,22 @@
+[
+  {
+    "label": "PIO: Build",
+    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"]
+  },
+  {
+    "label": "PIO: Upload",
+    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run --target upload ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"]
+  },
+  {
+    "label": "PIO: Monitor",
+    "command": "pio device monitor",
+    "tags": ["pio-env"]
+  },
+  {
+    "label": "PIO: Clean",
+    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run --target clean ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"]
+  }
+]
