@@ -1,22 +1,32 @@
 [
   {
     "label": "PIO: Build",
-    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run ${ENV_NAME:+-e} ${ENV_NAME#env:}",
-    "tags": ["pio-env"]
+    "command": "[ -x \"$HOME/.platformio/penv/bin/pio\" ] || (curl -LsSf https://astral.sh/uv/install.sh | sh && \"$HOME/.local/bin/uv\" venv --python 3.13 ~/.platformio/penv && \"$HOME/.local/bin/uv\" pip install --python ~/.platformio/penv pioarduino); PATH=\"$HOME/.platformio/penv/bin:$PATH\"; ENV_NAME=$ZED_CUSTOM_env_name; pio run ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"],
+    "reveal": "always"
+  },
+  {
+    "label": "PIO: Update compiledb for clangd",
+    "command": "[ -x \"$HOME/.platformio/penv/bin/pio\" ] || (curl -LsSf https://astral.sh/uv/install.sh | sh && \"$HOME/.local/bin/uv\" venv --python 3.13 ~/.platformio/penv && \"$HOME/.local/bin/uv\" pip install --python ~/.platformio/penv pioarduino); PATH=\"$HOME/.platformio/penv/bin:$PATH\"; ENV_NAME=$ZED_CUSTOM_env_name; pio run --target compiledb ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"],
+    "reveal": "always"
   },
   {
     "label": "PIO: Upload",
-    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run --target upload ${ENV_NAME:+-e} ${ENV_NAME#env:}",
-    "tags": ["pio-env"]
+    "command": "[ -x \"$HOME/.platformio/penv/bin/pio\" ] || (curl -LsSf https://astral.sh/uv/install.sh | sh && \"$HOME/.local/bin/uv\" venv --python 3.13 ~/.platformio/penv && \"$HOME/.local/bin/uv\" pip install --python ~/.platformio/penv pioarduino); PATH=\"$HOME/.platformio/penv/bin:$PATH\"; ENV_NAME=$ZED_CUSTOM_env_name; pio run --target upload ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"],
+    "reveal": "always"
   },
   {
     "label": "PIO: Monitor",
-    "command": "pio device monitor",
-    "tags": ["pio-env"]
+    "command": "[ -x \"$HOME/.platformio/penv/bin/pio\" ] || (curl -LsSf https://astral.sh/uv/install.sh | sh && \"$HOME/.local/bin/uv\" venv --python 3.13 ~/.platformio/penv && \"$HOME/.local/bin/uv\" pip install --python ~/.platformio/penv pioarduino); PATH=\"$HOME/.platformio/penv/bin:$PATH\"; ENV_NAME=$ZED_CUSTOM_env_name; pio pkg install ${ENV_NAME:+-e} ${ENV_NAME#env:} && pio device monitor",
+    "tags": ["pio-env"],
+    "reveal": "always"
   },
   {
     "label": "PIO: Clean",
-    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run --target clean ${ENV_NAME:+-e} ${ENV_NAME#env:}",
-    "tags": ["pio-env"]
+    "command": "[ -x \"$HOME/.platformio/penv/bin/pio\" ] || (curl -LsSf https://astral.sh/uv/install.sh | sh && \"$HOME/.local/bin/uv\" venv --python 3.13 ~/.platformio/penv && \"$HOME/.local/bin/uv\" pip install --python ~/.platformio/penv pioarduino); PATH=\"$HOME/.platformio/penv/bin:$PATH\"; ENV_NAME=$ZED_CUSTOM_env_name; pio run --target clean ${ENV_NAME:+-e} ${ENV_NAME#env:}",
+    "tags": ["pio-env"],
+    "reveal": "always"
   }
 ]

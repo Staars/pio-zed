@@ -8,12 +8,14 @@ Provides syntax highlighting for `platformio.ini` and configures `clangd` for C/
 
 - **`platformio.ini` syntax highlighting** — sections, settings, comments, bracket matching
 - **C/C++ IntelliSense** — auto-detects PlatformIO environments and starts `clangd` with the correct `--compile-commands-dir` pointing to `.pio/build/<env>/compile_commands.json`
+- **PlatformIO auto-detection** — checks both `$PATH` and the default virtual environment location (`~/.platformio/penv/bin/pio`) installed by the official bootstrapper
+- **Guided auto-install** — if `pio` is not found, a Zed diagnostic points the user directly to the bundled `PlatformIO: Auto-Install Core` task
 
 ## Requirements
 
 - **Zed** — any recent version
 - **Rust** — must be installed via [rustup](https://rustup.rs) (required by Zed dev extensions; Homebrew installations won't work)
-- **PlatformIO CLI** — install with `pip install platformio`
+- **PlatformIO CLI** — either already on `$PATH`, installed in `~/.platformio/penv/` by the official bootstrapper, or installed automatically via the bundled **`PlatformIO: Auto-Install Core`** task (requires Python 3)
 - **clangd** — `brew install llvm` (macOS), or your system package manager. Must be on `$PATH`.
 
 ## Installation (Dev Extension)
@@ -42,8 +44,10 @@ The extension replaces the built-in C/C++ language server for this project — c
 ## Usage
 
 1. Open a PlatformIO project folder in Zed
-2. The extension detects `platformio.ini` at the project root and launches clangd with IntelliSense for your build environment(s)
-3. Edit `.ino` or `.cpp` files with full LSP support (completions, go-to-definition, diagnostics)
+2. The extension checks for `pio` in your system `$PATH`, then falls back to `~/.platformio/penv/bin/pio` (the location used by the official bootstrapper)
+3. If `pio` is **not found**, a diagnostic notification appears — run `Cmd+Shift+T` and select **`PlatformIO: Auto-Install Core`** to install it automatically
+4. Once `pio` is present, the extension configures `clangd` with IntelliSense for your build environment(s)
+5. Edit `.ino` or `.cpp` files with full LSP support (completions, go-to-definition, diagnostics)
 
 ### PlatformIO Tasks
 
