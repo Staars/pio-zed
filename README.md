@@ -7,97 +7,82 @@ Provides syntax highlighting for `platformio.ini` and configures `clangd` for C/
 ## Features
 
 - **`platformio.ini` syntax highlighting** — sections, settings, comments, bracket matching
-- **C/C++ IntelliSense** — auto-detects PlatformIO environments and starts `clangd` with the correct `--compile-commands-dir` pointing to `.pio/build/<env>/compile_commands.json`
-- **PlatformIO auto-detection** — checks both `$PATH` and the default virtual environment location (`~/.platformio/penv/bin/pio`) installed by the official bootstrapper
-- **Guided auto-install** — if `pio` is not found, a Zed diagnostic points the user directly to the bundled `PlatformIO: Auto-Install Core` task
+- **C/C++ IntelliSense** — auto-detects PlatformIO environments via `pio project config` and starts `clangd` with `--compile-commands-dir` pointing to `.pio/build/<env>/compile_commands.json`
+- **Bundled tasks** — Build, Upload, Clean, Monitor, and Update compiledb — each with automatic PlatformIO Core installation via uv
+- **Run buttons** — click any `[env:...]` line in `platformio.ini` to run a task for that environment
+- **PlatformIO auto-detection** — checks `$PATH` and `~/.platformio/penv/bin/pio`
 
 ## Requirements
 
 - **Zed** — any recent version
-- **Rust** — must be installed via [rustup](https://rustup.rs) (required by Zed dev extensions; Homebrew installations won't work)
-- **PlatformIO CLI** — either already on `$PATH`, installed in `~/.platformio/penv/` by the official bootstrapper, or installed automatically via the bundled **`PlatformIO: Auto-Install Core`** task (requires Python 3)
-- **clangd** — `brew install llvm` (macOS), or your system package manager. Must be on `$PATH`.
+- **clangd** — `brew install llvm` (macOS) or your system package manager. Must be on `$PATH`.
+- **Rust** (`rustup` + `wasm32-wasip2` target) — only needed for dev extension compilation; not required if the extension is published
+
+PlatformIO Core is auto-installed on first task run via the bundled uv bootstrap — no manual setup needed.
 
 ## Installation (Dev Extension)
-
-Since this extension is not yet published to the Zed registry, install it as a dev extension:
 
 ```bash
 git clone https://github.com/christianbaars/pio-zed.git
 cd pio-zed
-```
-
-Make sure the `wasm32-wasip2` target is installed:
-
-```bash
 rustup target add wasm32-wasip2
 ```
 
 Then in Zed:
-
-1. Open the Extensions view (`Cmd+Shift+X` or `zed: extensions`)
+1. Open Extensions view (`Cmd+Shift+X`)
 2. Click **Install Dev Extension** (top right)
 3. Select the `pio-zed` directory
 
-The extension replaces the built-in C/C++ language server for this project — clangd will be configured automatically when a `platformio.ini` is detected.
+The extension replaces the built-in C/C++ language server — clangd is configured automatically when a `platformio.ini` is detected.
 
 ## Usage
 
 1. Open a PlatformIO project folder in Zed
-2. The extension checks for `pio` in your system `$PATH`, then falls back to `~/.platformio/penv/bin/pio` (the location used by the official bootstrapper)
-3. If `pio` is **not found**, a diagnostic notification appears — run `Cmd+Shift+T` and select **`PlatformIO: Auto-Install Core`** to install it automatically
-4. Once `pio` is present, the extension configures `clangd` with IntelliSense for your build environment(s)
-5. Edit `.ino` or `.cpp` files with full LSP support (completions, go-to-definition, diagnostics)
+2. Open any C/C++ file — the extension finds `pio` on `$PATH` or in `~/.platformio/penv/bin/pio`
+3. clangd starts with `--compile-commands-dir` pointing to the first environment that has a `.pio/build/<env>/compile_commands.json`
+4. If no `compile_commands.json` exists, the extension runs `pio pkg install` to fetch dependencies
+5. Click the ▶ run button next to an `[env:...]` line and pick a task (Build, Upload, etc.) — PlatformIO Core is auto-installed on first use
+6. If you still lack IntelliSense after build, run **PIO: Update compiledb for clangd** from the command palette or gutter
 
-### PlatformIO Tasks
+### Built-in Tasks
 
-The extension automatically bundles task definitions for compiling, uploading, and cleaning. It provides **run buttons** in the gutter next to `[env:...]` lines in `platformio.ini`. Clicking one opens a task picker with build/upload/clean commands specifically configured for that environment.
+| Task | Command |
+|------|---------|
+| PIO: Build | `pio run -e <env>` |
+| PIO: Upload | `pio run --target upload -e <env>` |
+| PIO: Monitor | `pio pkg install -e <env> && pio device monitor` |
+| PIO: Clean | `pio run --target clean -e <env>` |
+| PIO: Update compiledb for clangd | `pio run --target compiledb -e <env>` |
 
-If you wish to override these or define your own custom tasks in your project's `.zed/tasks.json`, you can use the custom variable `$ZED_CUSTOM_env_name` (which holds the matched environment section, e.g., `env:uno`):
+Each task auto-installs PlatformIO Core (via uv) if not found. Tasks are accessible from the gutter run buttons or `Cmd+Shift+R`.
+
+### Custom Tasks
+
+If you need project-specific tasks, create `.zed/tasks.json` in your project. The custom variable `$ZED_CUSTOM_env_name` holds the matched env section (e.g., `env:uno`):
 
 ```json
-[
-  {
-    "label": "PIO: Build",
-    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run ${ENV_NAME:+-e} ${ENV_NAME#env:}",
-    "tags": ["pio-env"]
-  },
-  {
-    "label": "PIO: Upload",
-    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run --target upload ${ENV_NAME:+-e} ${ENV_NAME#env:}",
-    "tags": ["pio-env"]
-  },
-  {
-    "label": "PIO: Monitor",
-    "command": "pio device monitor",
-    "tags": ["pio-env"]
-  },
-  {
-    "label": "PIO: Clean",
-    "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run --target clean ${ENV_NAME:+-e} ${ENV_NAME#env:}",
-    "tags": ["pio-env"]
-  }
-]
+{
+  "label": "PIO: Custom",
+  "command": "ENV_NAME=$ZED_CUSTOM_env_name; pio run -e ${ENV_NAME#env:} --target upload --upload-port /dev/ttyUSB0",
+  "tags": ["pio-env"]
+}
 ```
-
-Open tasks with `Cmd+Shift+T` (`task: spawn`) and select the desired command, or click the run button in the gutter.
 
 ## How It Works
 
-On opening any C/C++ file, the extension runs `language_server_command`:
-
-1. Checks if `platformio.ini` exists in the project root
-2. Parses environment names from `[env:...]` sections
-3. For each environment, checks if `.pio/build/<env>/compile_commands.json` exists
-4. Launches `clangd` with `--compile-commands-dir` pointing to the first matching build directory
+On opening a C/C++ file, `language_server_command` runs:
+1. Finds the `pio` binary (cached after first lookup)
+2. Runs `pio project config --json-output` to discover environments
+3. If no environment has a `compile_commands.json`, runs `pio pkg install`
+4. Finds `clangd` on `$PATH`
+5. Strips xtensa-specific GCC flags (`-mlongcalls`, etc.) from the first found `compile_commands.json` (these cause clangd `Unknown argument` errors)
+6. Launches clangd with `--compile-commands-dir` pointing to that environment's build directory
 
 ## Restrictions
 
-- **Task templates must be defined manually** in `.zed/tasks.json` (see template above). The extension provides run buttons via `runnables.scm`, but the actual task commands need user configuration until the Zed extension API supports dynamic task generation.
-- **PlatformIO CLI must be installed separately** — extensions cannot bundle external tools per Zed policy. Install with `pip install platformio`.
-- **clangd must be installed separately** — the extension detects it on `$PATH`.
-- **Rust must be installed via rustup**, not Homebrew. This is a Zed requirement for compiling WASM extensions.
-- **Serial monitor** — use Zed's integrated terminal with `pio device monitor` directly.
+- **IntelliSense for `.ino` files** — clangd treats `.ino` files as C++, but may not resolve `<Arduino.h>` if the toolchain compiler is not on `$PATH`. Build at least once to generate `compile_commands.json`.
+- **Serial monitor** — use Zed's integrated terminal with `pio device monitor` directly
+- **Single IntelliSense environment** — clangd is configured for the first environment with a `compile_commands.json`. Building or uploading other environments via the run button still works fine; only IntelliSense follows one env at a time.
 
 ## Project Structure
 
@@ -106,13 +91,16 @@ pio-zed/
 ├── extension.toml            # Extension manifest
 ├── Cargo.toml                # Rust crate config (compiled to WASM)
 ├── src/lib.rs                # Extension logic (clangd LSP integration)
+├── grammars/
+│   └── ini.wasm              # tree-sitter INI grammar
 ├── languages/
 │   └── pioini/
 │       ├── config.toml       # Language definition
 │       ├── highlights.scm    # Tree-sitter highlight queries
 │       ├── brackets.scm      # Bracket matching queries
-│       └── runnables.scm     # Runnable detection for [env:*] sections
-├── tasks.example.json        # Example task templates (copy to .zed/tasks.json)
+│       ├── runnables.scm     # Run button detection for [env:...]
+│       └── tasks.json        # Bundled task definitions
+├── extension.wasm            # Compiled extension binary
 └── LICENSE                   # MIT
 ```
 
