@@ -73,10 +73,12 @@ If you need project-specific tasks, create `.zed/tasks.json` in your project. Th
 On opening a C/C++ file, `language_server_command` runs:
 1. Finds the `pio` binary (cached after first lookup)
 2. Runs `pio project config --json-output` to discover environments
-3. If no environment has a `compile_commands.json`, runs `pio pkg install`
-4. Finds `clangd` on `$PATH`
-5. Strips xtensa-specific GCC flags (`-mlongcalls`, etc.) from the first found `compile_commands.json` (these cause clangd `Unknown argument` errors)
-6. Launches clangd with `--compile-commands-dir` pointing to that environment's build directory
+3. Prefers a project-root `compile_commands.json`; otherwise uses the first environment with one
+4. If no compilation database exists, runs `pio pkg install`
+5. Finds `clangd` on `$PATH` and authorizes PlatformIO toolchains with `--query-driver`
+6. Launches clangd without modifying the compilation database; clangd applies any project `.clangd` file normally
+
+For complex projects, put project-specific flag removal, forced includes, and other parsing policy in a checked-in `.clangd` file. The extension deliberately does not infer or rewrite that configuration because Arduino unity-build semantics are project-specific.
 
 ## Restrictions
 
